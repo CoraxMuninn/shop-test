@@ -1,0 +1,155 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  phone         String    @unique
+  role          String    @default("Customer") // Admin, Customer
+  name          String?
+  addresses     String    @default("[]") // Store JSON array of address objects as String
+  wishlistIds   String    @default("[]") // Store JSON array of product IDs as String
+  stockAlerts   String    @default("[]") // Store JSON array of stock alert objects as String
+  otpHash       String?
+  otpExpiresAt  DateTime?
+  tokenVersion  Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  orders        Order[]
+  reviews       Review[]
+  cart          Cart?
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique // English/Latin slug
+  description String    // Persian content
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id])
+  basePrice   Int       // Price in Toman (stored as integer)
+  published   Boolean   @default(true)
+  featured    Boolean   @default(false)
+  variants    String    @default("[]") // Store JSON array of variants as String
+  faq         String    @default("[]") // Store JSON array of FAQs as String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  reviews     Review[]
+  orderItems  OrderItem[]
+}
+
+model Category {
+  id          String     @id @default(uuid())
+  name        String     // Persian display name
+  slug        String     @unique // English/Latin slug
+  parentId    String?
+  parent      Category?  @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  children    Category[] @relation("CategoryToCategory")
+  sortOrder   Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  products    Product[]
+  articles    Article[]
+}
+
+model Cart {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     String   @default("[]") // Store JSON array of cart items as String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id                String        @id @default(uuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  status            String        @default("Pending") // Pending, Paid, Shipped, Delivered, ReturnRequested, Returned, Refunded, Cancelled
+  shippingAddress   String        // Store JSON snapshot of address as String
+  discreetShipping  Boolean       @default(false)
+  trackingCode      String?
+  paymentAuthority  String?
+  paymentRefId      String?
+  paymentStatus     String        @default("Pending") // Pending, Paid, Failed
+  discountCodeId    String?
+  discountCode      DiscountCode? @relation(fields: [discountCodeId], references: [id], onDelete: Restrict)
+  discountAmount    Int           @default(0)
+  totalAmount       Int           // Price in Toman (stored as integer)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  items             OrderItem[]
+}
+
+model OrderItem {
+  id                  String   @id @default(uuid())
+  orderId             String
+  order               Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId           String
+  product             Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  productTitleSnapshot String
+  color               String
+  size                String
+  unitPrice           Int      // Unit price in Toman
+  quantity            Int
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Review {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rating          Int
+  comment         String
+  moderationStatus String   @default("Pending") // Pending, Approved, Rejected
+  reply           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Article {
+  id              String   @id @default(uuid())
+  title           String
+  slug            String   @unique // English/Latin slug
+  excerpt         String
+  content         String   // Persian content
+  featuredImage   String
+  categoryId      String
+  category    Category @relation(fields: [categoryId], references: [id])
+  metaTitle       String?
+  metaDescription String?
+  canonicalUrl    String?
+  indexStatus     Boolean  @default(true) // Index/NoIndex
+  publishStatus   String   @default("Draft") // Draft, Published, Scheduled
+  scheduledAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model DiscountCode {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  type        String   // Percent, Fixed
+  value       Int
+  startsAt    DateTime
+  expiresAt   DateTime
+  usageLimit  Int
+  timesUsed   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders      Order[]
+}

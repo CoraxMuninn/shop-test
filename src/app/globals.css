@@ -1,0 +1,68 @@
+@import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/vazirmatn-font-face.css');
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+  --cream: #faf8f6;
+  --accent: #d9a8a0;
+  --accent-hover: #c3948b;
+  --gray: #6f6f6f;
+  --border: #ece7e3;
+  
+  --sidebar-background: #ffffff;
+  --sidebar-foreground: #1a1a1a;
+  --sidebar-primary: #d9a8a0;
+  --sidebar-border: #ece7e3;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif;
+  direction: rtl;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar matching the premium soft rose aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-hover);
+}
+
+/* Sharp corners for elements as requested by PRD */
+.sharp-corners {
+  border-radius: 0px !important;
+}
+
+/* Custom animations and styling */
+.premium-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.premium-hover:hover {
+  transform: translateY(-4px);
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
